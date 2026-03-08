@@ -1,31 +1,116 @@
-This is an anime recommendation system based on myanimelist. Thus, it requires an account on this website with previous anime 
-watched/selected in order to make a recommendation. 
+# Anime Recommendation System (MyAnimeList)
 
-This application aims to reduce time needed to scroll through myanimelist.net to find an anime to watch and instead will give 
-a machine learning recommendation based on previously watched shows from your account. The idea is as follows:
+This is an anime recommendation system based on **MyAnimeList**. Thus, it requires an account on this website with previously watched/selected anime in order to make recommendations.
 
-1. The user enters their myanimelist.net user ID
-2. The app shows 5 random animes from the top 20 generated recommendations based on shows the user has previously watched 
+This application aims to reduce the time needed to scroll through [myanimelist.net](https://myanimelist.net) to find an anime to watch. Instead, it provides a **machine learning–based recommendation** based on shows the user has previously watched.
 
-The project consists of 5 parts: 
+## How It Works
 
-1. Crawl Scheduler
-2. Crawler
-3. Data Ingestion + ETL
-4. Machine Learning Pipelines
+1. The user enters their **MyAnimeList user ID**
+2. The app shows **5 random anime from the top 20 generated recommendations** based on shows the user has previously watched.
+
+---
+
+# System Architecture
+
+The project consists of **five major components**:
+
+1. Crawl Scheduler  
+2. Crawler  
+3. Data Ingestion + ETL  
+4. Machine Learning Pipelines  
 5. Web App (Frontend)
 
-Crawl scheduler: A job that when called will fetch a list of anime/profile urls from a database and push them to a message queue. The crawl schedulers are deployed as Cloud Functions, the database as a postgres Cloud SQL database and the message queue as a Pub/Sub topic.
+---
 
-Crawler: Scrapy jobs that pull message urls from the scheduler message queue and crawl them. The crawled data items are pushed to a data ingestion message queue and the crawler jobs also connects to the schedule database to update it. The crawler is deployed to Google Kubernetes Engine and the data ingestion queue is a Pub/Sub topic.
+# 1. Crawl Scheduler
 
-Data Ingestion and ETL: An Apache Beam streaming job pulls data items from the ingestion queue and pushes them to BigQuery in a landing area. An Apache Airflow pipeline is run to aggregate, clean and validate the crawled data into well structured datasets. The new data is saved in BigQuery and Storage. The ingestion beam job is deployed as a Dataflow job and the Apache Airflow ETL pipeline runs in a Cloud Composer environment.
+A job that fetches a list of **anime/profile URLs** from a database and pushes them to a **message queue**.
 
-Machine Learning Pipelines: Each pipeline handles both retrieval and ranking steps.
-    For retrieval step, the pipeline starts by generating the train/val/test data for retrieval, then trains a retrieval model and finally runs batch inference for retrieval and saves the results.
-    For ranking step, the pipeline starts by generating the train/val/test data for ranking, then trains a ranking model and finally runs batch inference for ranking on the retrieved results and saves the final results.
-    The pipelines are Kubeflow pipelines and they run on Google VertexAI pipelines. Data is fetched from and saved to both BigQuery and Storage.
+**Infrastructure:**
 
-Web App: The generated recommendations are ingested into a Redis database and a small Flask web application fetches the recommendations from Redis for each user recommendation request.
+- Crawl schedulers are deployed as **Google Cloud Functions**
+- Database is a **Postgres Cloud SQL database**
+- Message queue is a **Google Pub/Sub topic**
 
-Current UI is scrappy, needs work. Hope you enjoy.
+---
+
+# 2. Crawler
+
+**Scrapy jobs** pull message URLs from the scheduler message queue and crawl them.
+
+The crawled data items are pushed to a **data ingestion message queue**.  
+Crawler jobs also connect to the scheduler database to update it.
+
+**Infrastructure:**
+
+- Crawlers deployed on **Google Kubernetes Engine (GKE)**
+- Data ingestion queue implemented with **Google Pub/Sub**
+
+---
+
+# 3. Data Ingestion + ETL
+
+An **Apache Beam streaming job** pulls data items from the ingestion queue and pushes them into **BigQuery** as a landing area.
+
+An **Apache Airflow pipeline** then:
+
+- Aggregates the data
+- Cleans the data
+- Validates the data
+- Transforms it into structured datasets
+
+The processed datasets are saved to **BigQuery** and **Cloud Storage**.
+
+**Infrastructure:**
+
+- Beam job deployed as a **Google Dataflow job**
+- Airflow pipeline runs in **Google Cloud Composer**
+
+---
+
+# 4. Machine Learning Pipelines
+
+Each pipeline handles both **retrieval** and **ranking** stages.
+
+## Retrieval Step
+
+1. Generate **train / validation / test datasets**
+2. Train a **retrieval model**
+3. Run **batch inference**
+4. Save retrieval results
+
+## Ranking Step
+
+1. Generate **train / validation / test datasets for ranking**
+2. Train a **ranking model**
+3. Run **batch inference on retrieved results**
+4. Save the **final ranked recommendations**
+
+**Infrastructure:**
+
+- Pipelines built with **Kubeflow Pipelines**
+- Executed using **Google Vertex AI Pipelines**
+- Data fetched from and stored in:
+  - **BigQuery**
+  - **Cloud Storage**
+
+---
+
+# 5. Web App (Frontend)
+
+Generated recommendations are ingested into a **Redis database**.
+
+A lightweight **Flask web application**:
+
+- Fetches recommendations from Redis
+- Returns recommendations for each user request
+
+---
+
+# Notes
+
+- The current **UI is scrappy and needs improvement**.
+- Feedback and contributions are welcome.
+
+Hope you enjoy!
